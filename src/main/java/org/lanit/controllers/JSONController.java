@@ -63,22 +63,28 @@ public class JSONController {
         return ResponseEntity.ok().header("Content-Type", "application/json").body(successResponse);
     }
 
-    // Вспомогательный метод для сборки ответа с ошибкой на основе СЫРОЙ строки запроса
+        // Вспомогательный метод для сборки ответа с ошибкой на основе СЫРОЙ строки запроса
     private ResponseEntity<?> buildErrorResponse(String rawBody) {
         Map<String, Object> errorResponse = new LinkedHashMap<>();
         errorResponse.put("message", "Error: uncorrected json");
 
-        // Очищаем сырой JSON от кавычек, чтобы получить формат, близкий к Map.toString()
-        String noQuotes = rawBody.replace("\"", "");
-        
-        // Нормализуем пробелы после запятых (если робот прислал без пробела, а ждет с пробелом)
-        String withSpaces = noQuotes.replace(",", ", ");
-        
-        // Убираем лишние пробелы вокруг двоеточий, приводя к виду "ключ: значение"
-        String formattedString = withSpaces.replaceAll("\\s*:\\s*", ": ");
+        // 1. Очищаем от переносов строк (\n, \r) и заменяем их на пустые строки
+        String flatString = rawBody.replaceAll("[\\n\\r]", "");
 
-        // Подставляем два обязательных пробела в начало после открывающей фигурной скобки
-        String customJsonString = "{  " + formattedString.trim().substring(1);
+        // 2. Очищаем сырой JSON от кавычек
+        String noQuotes = flatString.replace("\"", "");
+
+        // 3. Убираем лишние пробелы вокруг двоеточий, приводя к виду "ключ: значение"
+        String formattedString = noQuotes.replaceAll("\\s*:\\s*", ": ");
+
+        // 4. Очищаем пробелы вокруг запятых и принудительно ставим ",  " (два пробела, как в Expected)
+        formattedString = formattedString.replaceAll("\\s*,\\s*", ",  ");
+
+        // 5. Очищаем пробелы внутри фигурных скобок по краям
+        formattedString = formattedString.replaceAll("\\{\\s*", "{").replaceAll("\\s*\\}", "}");
+
+        // 6. Подставляем ровно два обязательных пробела в начало после открывающей фигурной скобки
+        String customJsonString = "{  " + formattedString.substring(1);
 
         errorResponse.put("request", customJsonString);
 
@@ -86,6 +92,7 @@ public class JSONController {
                 .header("Content-Type", "application/json")
                 .body(errorResponse);
     }
+
 
     private ResponseEntity<RequestJson> prepareResponse(RequestJson request) {
         return ResponseEntity.ok(request);
