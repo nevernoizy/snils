@@ -1,10 +1,10 @@
-package com.example.demo.models;
+package org.lanit.modelsJson;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class JSONmodel {
+public class RequestJson {
     @JsonProperty
     public String snils;
 

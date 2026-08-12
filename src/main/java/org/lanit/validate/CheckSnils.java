@@ -1,4 +1,4 @@
-package com.example.demo.validate;
+package org.lanit.validate;
 
 import java.util.regex.Pattern;
 

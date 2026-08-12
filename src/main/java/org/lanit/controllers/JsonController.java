@@ -1,17 +1,12 @@
-package com.example.demo.controllers;
+package org.lanit.controllers;
 
-import com.example.demo.models.*;
-import com.example.demo.validate.CheckSnils;
-import org.springframework.http.HttpStatus;
+import org.lanit.modelsJson.RequestJson;
+import org.lanit.validate.CheckSnils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.UUID;
 
 @RestController
 public class JsonController {
@@ -46,7 +41,7 @@ public class JsonController {
     }
 
 
-    private ResponseEntity<JSONmodel> prepareResponse(JSONmodel request) {
+    private ResponseEntity<RequestJson> prepareResponse(RequestJson request) {
 
         return ResponseEntity.ok(request);
     }
