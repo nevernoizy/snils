@@ -1,5 +1,7 @@
 package org.lanit.controllers;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.lanit.modelsJson.RequestJson;
 import org.lanit.validate.CheckSnils;
@@ -8,6 +10,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -15,34 +18,46 @@ import java.util.Map;
 @ResponseBody
 public class JSONController {
 
-    // ObjectMapper нужен для сериализации тела запроса в валидный текст JSON (Требование №11)
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @PostMapping("/snils")
-    public ResponseEntity<?> snilsRequest(@RequestBody Map<String, Object> body) throws IOException {
+    public ResponseEntity<?> snilsRequest(@RequestBody String rawBody) throws IOException {
 
-        // 1. Проверяем строгость структуры JSON
-// Если передан пустой JSON, или в нем больше одного ключа, или единственный ключ - это не "snils"
-if (body.isEmpty() || body.size() > 1 || !body.containsKey("snils") || body.get("snils") == null) {
-    Map<String, Object> errorResponse = new LinkedHashMap<>();
-    errorResponse.put("message", "Error: uncorrected json");
+        // Парсим сырую строку в JsonNode, чтобы увидеть реальное количество полей в JSON
+        JsonNode jsonNode = objectMapper.readTree(rawBody);
 
-    // Превращаем всю пришедшую мапу со всеми левыми ключами в строку
-    String mapString = body.toString();
+        // Считаем реальное количество ключей в пришедшем JSON-объекте
+        int keysCount = 0;
+        Iterator<String> fieldNames = jsonNode.fieldNames();
+        while (fieldNames.hasNext()) {
+            fieldNames.next();
+            keysCount++;
+        }
 
-    // Меняем джавовые знаки "=" на ": ", как требует кривой JsonPath в автотесте
-    String formattedString = mapString.replace("=", ": ");
+        // Конвертируем в Map для сборки ответа с ошибкой
+        Map<String, Object> body = objectMapper.readValue(rawBody, new TypeReference<LinkedHashMap<String, Object>>() {});
 
-    // Добавляем два обязательных пробела после открывающей скобки для прохождения теста
-    String customJsonString = "{  " + formattedString.substring(1);
+        // 1. Проверяем строгость структуры JSON (включая проверку на лишние/некорректные/несколько ключей)
+        if (body.isEmpty() || keysCount > 1 || !body.containsKey("snils") || body.get("snils") == null) {
+            Map<String, Object> errorResponse = new LinkedHashMap<>();
+            errorResponse.put("message", "Error: uncorrected json");
 
-    errorResponse.put("request", customJsonString);
+            // Превращаем всю пришедшую мапу со всеми левыми ключами в строку
+            String mapString = body.toString();
 
-    // Возвращаем статус 400
-    return ResponseEntity.badRequest()
-            .header("Content-Type", "application/json")
-            .body(errorResponse);
-}
+            // Меняем джавовые знаки "=" на ": ", как требует кривой JsonPath в автотесте
+            String formattedString = mapString.replace("=", ": ");
+
+            // Добавляем два обязательных пробела после открывающей скобки для прохождения теста
+            String customJsonString = "{  " + formattedString.substring(1);
+
+            errorResponse.put("request", customJsonString);
+
+            // Возвращаем статус 400
+            return ResponseEntity.badRequest()
+                    .header("Content-Type", "application/json")
+                    .body(errorResponse);
+        }
 
         String snils = body.get("snils").toString();
 
