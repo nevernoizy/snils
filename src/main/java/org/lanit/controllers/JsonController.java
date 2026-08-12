@@ -9,7 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 @RestController
-public class JsonController {
+public class JSONController {
 
 
     @PostMapping("/snils")
@@ -20,7 +20,7 @@ public class JsonController {
             Map<String, Object> errorResponse = new LinkedHashMap<>();
             errorResponse.put("message", "Error: uncorrected json");
             errorResponse.put("request", body); // Возвращаем сырой некорректный json
-            return ResponseEntity.badRequest().body(errorResponse);
+            return ResponseEntity.badRequest().header("Content-Type", "application/json").body(errorResponse);
         }
 
         String snils = body.get("snils").toString();
@@ -30,14 +30,14 @@ public class JsonController {
             Map<String, Object> errorResponse = new LinkedHashMap<>();
             errorResponse.put("message", "Error: uncorrected snils");
             errorResponse.put("snils", snils);
-            return ResponseEntity.badRequest().body(errorResponse);
+            return ResponseEntity.badRequest().header("Content-Type", "application/json").body(errorResponse);
         }
 
         // 3. Успешный ответ (Код 200)
         Map<String, Object> successResponse = new LinkedHashMap<>();
         successResponse.put("message", "success");
         successResponse.put("snils", snils);
-        return ResponseEntity.ok(successResponse);
+        return ResponseEntity.ok().header("Content-Type", "application/json").body(successResponse);
     }
 
 
