@@ -21,9 +21,9 @@ public class JSONController {
     @PostMapping("/snils")
     public ResponseEntity<?> snilsRequest(@RequestBody Map<String, Object> body) throws IOException {
 
-        // 1. Проверяем структуру JSON на наличие обязательного ключа "snils"
-// Если ключа "snils" вообще нет или под ним прислали null — это 400 ошибка
-if (!body.containsKey("snils") || body.get("snils") == null) {
+        // 1. Проверяем строгость структуры JSON
+// Если передан пустой JSON, или в нем больше одного ключа, или единственный ключ - это не "snils"
+if (body.isEmpty() || body.size() > 1 || !body.containsKey("snils") || body.get("snils") == null) {
     Map<String, Object> errorResponse = new LinkedHashMap<>();
     errorResponse.put("message", "Error: uncorrected json");
 
@@ -38,7 +38,7 @@ if (!body.containsKey("snils") || body.get("snils") == null) {
 
     errorResponse.put("request", customJsonString);
 
-    // Возвращаем статус 400 (badRequest)
+    // Возвращаем статус 400
     return ResponseEntity.badRequest()
             .header("Content-Type", "application/json")
             .body(errorResponse);
